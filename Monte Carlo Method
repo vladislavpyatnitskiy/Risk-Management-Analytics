@@ -56,7 +56,8 @@ paths <- melt(paths,
 
 # visualise
 
-ggplot(paths, aes(x = days, y = (value - 1) * 100,
+ggplot(paths, aes(x = days,
+                  y = (value - 1) * 100,
                   col = variable)) +
   geom_line() +
   theme_bw() +
