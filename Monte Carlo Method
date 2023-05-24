@@ -15,14 +15,10 @@ for (Ticker in tickers)
                                  getSymbols(Ticker,
                                             src = "yahoo",
                                             auto.assign=FALSE)[,4])
-
-
 portfolioPrices <- portfolioPrices[apply(portfolioPrices,
                                          1,
                                          function(x) all(!is.na(x))),]
-
 colnames(portfolioPrices) <- tickers
-
 portfolioReturns <- ROC(portfolioPrices,
                         type = "discrete")
 portfolioReturns <-as.timeSeries(portfolioPrices)
@@ -48,14 +44,12 @@ paths <- apply(paths,
                cumprod)
 
 # prepare
-
 paths <- data.table(paths)
 paths$days <- 1:nrow(paths)
 paths <- melt(paths,
               id.vars = "days")
 
 # visualise
-
 ggplot(paths, aes(x = days,
                   y = (value - 1) * 100,
                   col = variable)) +
