@@ -14,7 +14,7 @@ histVaR <- function(x, y){
         function(col) quantile(col, VaR_y))
   
   # Transform into matrix format
-  x <- as.matrix((x))
+  x <- as.matrix(x)
   
   # Put name for column
   colnames(x) <- c(sprintf("VaR %s", y))
