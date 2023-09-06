@@ -22,5 +22,5 @@ histVaR <- function(x, y){
   # Display matrix
   return(x)
 }
-Test new function
+#Test new function
 histVaR(lrtn, 95)
