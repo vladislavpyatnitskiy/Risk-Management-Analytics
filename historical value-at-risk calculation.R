@@ -4,7 +4,7 @@ histVaR <- function(x, y){
   # Check whether there are less than 100 observations
   if (nrow(x) < 100) {
     print("Error. Insufficient number of observations for analysis.")
-  }
+  } else {
   # Calculate its quantile
   VaR_y <- 1 - y * 0.01
   
@@ -21,6 +21,7 @@ histVaR <- function(x, y){
 
   # Display matrix
   return(x)
+  }
 }
 #Test new function
 histVaR(lrtn, 95)
