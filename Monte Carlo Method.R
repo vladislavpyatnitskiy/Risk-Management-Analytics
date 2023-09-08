@@ -28,6 +28,10 @@ portfolioReturns <-as.timeSeries(portfolioPrices)
 
 # Monte Function
 monte_carlo <- function(c, ndays, n){
+  
+  # Set title for plot
+  title_for_var <- sprintf("%s Performance by Monte Carlo Simulation",
+                           colnames(c))
   # Calculate returns
   lrtn <- c / lag(c)
   lrtn <- as.numeric(lrtn)
@@ -35,11 +39,14 @@ monte_carlo <- function(c, ndays, n){
   
   # Calculate various scenarios of Stock Performance
   set.seed(0)
+  
+  # Mimic Historical Performance using log returns
   paths <- replicate(n, 
                      expr = round(sample(lrtn,
                                          ndays,
                                          replace = TRUE),
                                   2))
+  # Put values into list and calculate cumulative sums
   paths <- apply(paths,
                  2,
                  cumprod)
@@ -51,12 +58,14 @@ monte_carlo <- function(c, ndays, n){
                 id.vars = "days")
   
   # Make Line Charts with all scenarious
-  monte_graph <- ggplot(paths, aes(x = days,
-                    y = (value - 1) * 100,
-                    col = variable)) +
+  monte_graph <- ggplot(paths,
+                        aes(x = days,
+                            y = (value - 1) * 100,
+                            col = variable)) +
     geom_line() +
     theme_bw() +
     theme(legend.position = "none") +
+    ggtitle(title_for_var) +
     xlab("Days Invested") + 
     ylab("Portfolio Return (%)")
   
@@ -72,5 +81,5 @@ monte_carlo <- function(c, ndays, n){
   # Show
   return(out)
 }
-
+# Test
 monte_carlo(portfolioReturns, 1000, 100)
