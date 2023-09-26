@@ -1,10 +1,11 @@
-# Value-at-Risk via Variance-Covariance Method; VaR 95 set by default
+# Function to calculate VaR via Variance Covariance Method
 var_via_sd <- function(x, y = 95){
+  
   # Check whether there are less than 100 observations
   if (nrow(x) < 100) {
     print("Error. Insufficient number of observations for analysis.")
   } else {
-  
+    
     # Calculate log returns
     x=diff(log(x))[-1,]
     
@@ -33,13 +34,10 @@ var_via_sd <- function(x, y = 95){
       var_sd_coef <- (mean_for_var[n]) + norm_for_var * (sd_for_var[n])
       
       # Join to list
-      var_sd_list <- cbind(var_sd_list, var_sd_coef)
+      var_sd_list <- rbind(var_sd_list, var_sd_coef)
     }
     # Transform to matrix
     var_sd_list <- as.matrix(var_sd_list)
-    
-    # Transpose
-    var_sd_list <- t(var_sd_list)
     
     # Return names to assets
     rownames(var_sd_list) <- names_for_var_sd
