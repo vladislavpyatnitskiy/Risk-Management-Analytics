@@ -9,8 +9,8 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
   
   # Which VaR to calculate
   VaR_y <- 1 - VaR_for_monte * 0.01
-
-  # For each column
+  
+  # For each security calculate VaR MC
   for (b in 1:(ncol(c))){
     
     # Calculate returns
@@ -55,14 +55,11 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
       ndays
     
     # Add to list 
-    list_var_mc <- cbind(list_var_mc, var_f)
+    list_var_mc <- rbind(list_var_mc, var_f)
   }
   # Make it matrix
   list_var_mc <- as.matrix(list_var_mc)
-  
-  # Transpose
-  list_var_mc <- t(list_var_mc)
-  
+
   # Give row name
   rownames(list_var_mc) <- title_for_var
   
@@ -72,5 +69,4 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
   # Display values
   return(list_var_mc)
 }
-# Test
-monte_carlo_for_var(portfolioReturns, 252, 100)
+monte_carlo_for_var(stock_data, 252, 100)
