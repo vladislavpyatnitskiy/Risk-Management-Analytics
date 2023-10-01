@@ -10,37 +10,26 @@ var_via_sd <- function(x, y = 95){
     x=diff(log(x))[-1,]
     
     # Calculate means
-    mean_for_var <- apply(x, 2, function(col) mean(col))
+    mean_VaR <- apply(x, 2, function(col) mean(col))
     
     # Calculate SDs
-    sd_for_var <- apply(x, 2, function(col) sd(col))
+    sd_VaR <- apply(x, 2, function(col) sd(col))
     
-    # Calculate its quantile
-    VaR_y <- 1 - y * 0.01
-    
-    # Find value from Table of Standard Normal Probabilities
-    norm_for_var <- qnorm(VaR_y)
+    # Find quantile's value from Table of Standard Normal Probabilities
+    norm_VaR <- qnorm(1 - y * 0.01)
     
     # Set up list to contain future values
     var_sd_list <- NULL
     
-    # Give names for columns
-    names_for_var_sd <- colnames(x)
-    
     # For each asset
-    for (n in 1:(ncol(x))){
+    for (n in 1:ncol(x)){
       
-      # Calculate VaR 
-      var_sd_coef <- (mean_for_var[n]) + norm_for_var * (sd_for_var[n])
-      
-      # Join to list
-      var_sd_list <- rbind(var_sd_list, var_sd_coef)
+      # Calculate VaR and join to list
+      var_sd_list <- rbind(var_sd_list, mean_VaR[n] + norm_VaR * sd_VaR[n])
     }
-    # Transform to matrix
-    var_sd_list <- as.matrix(var_sd_list)
-    
-    # Return names to assets
-    rownames(var_sd_list) <- names_for_var_sd
+  
+    # Give names for columns
+    rownames(var_sd_list) <- colnames(x)
     
     # Name parameter
     colnames(var_sd_list) <- "VaR V-C"
