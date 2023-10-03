@@ -1,3 +1,11 @@
+# Libraries
+lapply(c("quantmod",
+         "ggplot2",
+         "data.table",
+         "timeSeries"),
+       require,
+       character.only = TRUE)
+
 # Monte Function
 monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
   
@@ -33,17 +41,6 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
     paths$days <- 1:nrow(paths)
     paths <- melt(paths,
                   id.vars = "days")
-    
-    # Make Line Charts with all scenarios
-    monte_graph <- ggplot(paths,
-                          aes(x = days, y = (value - 1) * 100,
-                              col = variable)) +
-      geom_line() +
-      theme_bw() +
-      theme(legend.position = "none") +
-      ggtitle(title_for_var) +
-      xlab("Days Invested") + 
-      ylab("Portfolio Return (%)")
     
     # Calculate VaR and add to list
     list_var_mc <- rbind(list_var_mc, 
