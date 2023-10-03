@@ -1,3 +1,11 @@
+# Libraries
+lapply(c("quantmod",
+         "ggplot2",
+         "data.table",
+         "timeSeries"),
+       require,
+       character.only = TRUE)
+
 # Monte Function
 monte_carlo_for_cvar <- function(c, ndays, n, ES_for_monte = 95){
   
