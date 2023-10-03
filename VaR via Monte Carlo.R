@@ -7,30 +7,26 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
   # Set title for plot
   title_for_var <- colnames(c)
   
-  # Which VaR to calculate
-  VaR_y <- 1 - VaR_for_monte * 0.01
-  
-  # For each security calculate VaR MC
-  for (b in 1:(ncol(c))){
+  # For each column in data set
+  for (b in 1:ncol(c)){
     
-    # Calculate returns
-    lrtn <- (c[,b]) / (lag(c[,b]))
-    lrtn <- as.numeric(lrtn)
+    # Define name for column variable
+    security <- c[,b]
+    
+    # Calculate return
+    lrtn <- as.numeric(security / lag(security))
+    
+    # Define first value in column as 1
     lrtn[1] <- 1
     
     # Calculate various scenarios of Stock Performance
     set.seed(0)
     
     # Mimic Historical Performance using log returns
-    paths <- replicate(n, 
-                       expr = round(sample(lrtn,
-                                           ndays,
-                                           replace = TRUE),
-                                    2))
+    paths <- replicate(n, expr = round(sample(lrtn,ndays,replace = TRUE),2))
+    
     # Put values into list and calculate cumulative sums
-    paths <- apply(paths,
-                   2,
-                   cumprod)
+    paths <- apply(paths, 2, cumprod)
     
     # Transform it into Time Series
     paths <- data.table(paths)
@@ -40,8 +36,7 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
     
     # Make Line Charts with all scenarios
     monte_graph <- ggplot(paths,
-                          aes(x = days,
-                              y = (value - 1) * 100,
+                          aes(x = days, y = (value - 1) * 100,
                               col = variable)) +
       geom_line() +
       theme_bw() +
@@ -50,16 +45,11 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
       xlab("Days Invested") + 
       ylab("Portfolio Return (%)")
     
-    # Calculate VaR 
-    var_f <- quantile(((paths$value[paths$days == ndays] - 1) * 100), VaR_y) /
-      ndays
-    
-    # Add to list 
-    list_var_mc <- rbind(list_var_mc, var_f)
+    # Calculate VaR and add to list
+    list_var_mc <- rbind(list_var_mc, 
+                         quantile(((paths$value[paths$days == ndays] - 1) *
+                                     100), 1 - VaR_for_monte * 0.01) / ndays)
   }
-  # Make it matrix
-  list_var_mc <- as.matrix(list_var_mc)
-
   # Give row name
   rownames(list_var_mc) <- title_for_var
   
@@ -69,4 +59,5 @@ monte_carlo_for_var <- function(c, ndays, n, VaR_for_monte = 95){
   # Display values
   return(list_var_mc)
 }
-monte_carlo_for_var(stock_data, 252, 100)
+# Test
+monte_carlo_for_var(portfolioReturns, 252, 100)
