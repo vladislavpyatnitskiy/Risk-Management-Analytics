@@ -7,3 +7,5 @@ Here are selected essential techniques to assess financial risks:
 • Value-at-Risk
 • Expected Shortfall
 • Monte Carlo Simulation
+
+For more info check: https://github.com/vladislavpyatnitskiy/Risk-Management-Analytics/wiki
