@@ -1,41 +1,34 @@
 # Function to calculate VaR via Variance Covariance Method
-var_via_sd <- function(x, y = 95){
+var_vc <- function(x, y = 95, lg = T){
   
   # Check whether there are less than 100 observations
   if (nrow(x) < 100) {
-    print("Error. Insufficient number of observations for analysis.")
-  } else {
+    print("Error. Insufficient number of observations for analysis.") } else {
+  
+    # Calculate log returns and remove NA if necessary
+    if (isTRUE(lg)) { x <- diff(log(x))[-1,] }
     
-    # Calculate log returns
-    x=diff(log(x))[-1,]
-    
-    # Calculate means
-    mean_VaR <- apply(x, 2, function(col) mean(col))
-    
-    # Calculate SDs
-    sd_VaR <- apply(x, 2, function(col) sd(col))
-    
-    # Find quantile's value from Table of Standard Normal Probabilities
-    norm_VaR <- qnorm(1 - y * 0.01)
+    # Calculate means and SDs
+    vs_VaR <- apply(x, 2, function(x) c(mean(x), sd(x)))
     
     # Set up list to contain future values
-    var_sd_list <- NULL
+    var_vc <- NULL
     
     # For each asset
     for (n in 1:ncol(x)){
       
-      # Calculate VaR and join to list
-      var_sd_list <- rbind(var_sd_list, mean_VaR[n] + norm_VaR * sd_VaR[n])
+      # Calculate VaR using values of standard norm probs and join to list
+      var_vc <- rbind(var_vc, vs_VaR[1,n] + qnorm(1 - y * 0.01) * vs_VaR[2,n])
     }
-  
-    # Give names for columns
-    rownames(var_sd_list) <- colnames(x)
+    
+    # Return names to assets
+    rownames(var_vc) <- colnames(x)
     
     # Name parameter
-    colnames(var_sd_list) <- "VaR V-C"
-  }
+    colnames(var_vc) <- sprintf("VaR VC %s%%", y) }
+  
   # Display values
-  return(var_sd_list)
+  return(var_vc)
 }
 # Test
-var_via_sd(stock_data, 99)
+var_vc(stock_data, 95)
