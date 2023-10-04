@@ -1,29 +1,21 @@
-# Function to find values for Value-at-Risk (VaR)
-histVaR <- function(x, y){
+# Calculate VaR via Historical Method
+histVaR <- function(x, VaR, lg = T){
+  
   # Check whether there are less than 100 observations
-  if (nrow(x) < 100) {
-    print("Error. Insufficient number of observations for analysis.")
-  } else {
-    # Calculate its quantile
-    VaR_y <- 1 - y * 0.01
-
-    # Calculate log returns and remove NA
-    x <- diff(log(x))[-1,]
+  if (nrow(x) < 100) { 
+    print("Error. Insufficient number of observations for analysis.") } else {
     
-    # Calculate historical VaR value 
-    x <- apply(x,
-          2,
-          function(col) quantile(col, VaR_y))
+    # Calculate log returns and remove NA if necessary
+    if (isTRUE(lg)) { x <- diff(log(x))[-1,] }
     
-    # Transform into matrix format
-    x <- as.matrix(x)
+    # Calculate historical VaR value and transform into matrix format
+    x <- as.matrix(apply(x, 2, function(col) quantile(col, 1 - VaR * 0.01)))
     
     # Put name for column
-    colnames(x) <- c(sprintf("VaR %s", y))
-  
+    colnames(x) <- c(sprintf("VaR %s%%", VaR))
+    
     # Display matrix
-    return(x)
-  }
+    return(x) }
 }
-# Test new function
+# Test
 histVaR(stock_data, 95)
