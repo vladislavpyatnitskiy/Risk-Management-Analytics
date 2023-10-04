@@ -2,8 +2,7 @@
 histVaR <- function(x, VaR, lg = T){
   
   # Check whether there are less than 100 observations
-  if (nrow(x) < 100) { 
-    print("Error. Insufficient number of observations for analysis.") } else {
+  if (nrow(x) < 100) { print("Insufficient number of observations.") } else {
     
     # Calculate log returns and remove NA if necessary
     if (isTRUE(lg)) { x <- diff(log(x))[-1,] }
