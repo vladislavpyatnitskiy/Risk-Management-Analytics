@@ -2,8 +2,7 @@
 var_vc <- function(x, y = 95, lg = T){
   
   # Check whether there are less than 100 observations
-  if (nrow(x) < 100) {
-    print("Error. Insufficient number of observations for analysis.") } else {
+  if (nrow(x) < 100) { print("Insufficient number of observations.") } else {
   
     # Calculate log returns and remove NA if necessary
     if (isTRUE(lg)) { x <- diff(log(x))[-1,] }
@@ -15,11 +14,10 @@ var_vc <- function(x, y = 95, lg = T){
     var_vc <- NULL
     
     # For each asset
-    for (n in 1:ncol(x)){
+    for (n in 1:ncol(x)){ 
       
-      # Calculate VaR using values of standard norm probs and join to list
-      var_vc <- rbind(var_vc, vs_VaR[1,n] + qnorm(1 - y * 0.01) * vs_VaR[2,n])
-    }
+      # Calculate VaR using standard norm probs and join to list
+      var_vc <- rbind(var_vc, vs_VaR[1,n] + qnorm(1 - y * 0.01) * vs_VaR[2,n])}
     
     # Return names to assets
     rownames(var_vc) <- colnames(x)
