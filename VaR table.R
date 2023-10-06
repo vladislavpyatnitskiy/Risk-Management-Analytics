@@ -34,9 +34,6 @@ VaR_table <- function(var_x, VaR = 95, ndays = 252, n_obvs = 100, lg = T){
     # For each asset calculate VaR using standard norm probs and join to list
     for (n in 1:(ncol(var_x))){ var_vc <- rbind(var_vc,vs_VaR[1,n] + qnorm(y) *
                                                   vs_VaR[2,n])}
-    # Return names to assets
-    rownames(var_vc) <- colnames(var_x)
-    
     ### VaR by Monte Carlo ###
     
     # Set list to store values
@@ -58,22 +55,14 @@ VaR_table <- function(var_x, VaR = 95, ndays = 252, n_obvs = 100, lg = T){
                                              replace = TRUE),2))
       
       # Put values into list and calculate cumulative sums
-      paths <- apply(paths,2,cumprod)
-      
-      # Transform it into Time Series
-      paths <- data.table(paths)
+      paths <- data.table(apply(paths,2,cumprod))
       paths$days <- 1:nrow(paths)
       paths <- melt(paths, id.vars = "days")
       
       # Calculate VaR and add to list
       list_var_mc <- rbind(list_var_mc, quantile(((paths$value[paths$days ==
                                                                  ndays] -
-                                                     1) * 100), y) / ndays)
-    }
-    
-    # Give row name
-    rownames(list_var_mc) <- colnames(var_x)
-    
+                                                     1) * 100), y) / ndays) }
     ### End of main calculations ###
     
     # Combine all three matrices into one
