@@ -4,17 +4,14 @@ histVaR <- function(x, VaR, lg = T){
   # Check whether there are less than 100 observations
   if (nrow(x) < 100) { print("Insufficient number of observations.") } else {
     
-    # Calculate log returns and remove NA if necessary
-    if (isTRUE(lg)) { x <- diff(log(x))[-1,] }
+    if (isTRUE(lg)) { x <- diff(log(x))[-1,] } # log returns and remove NA
     
     # Calculate historical VaR value and transform into matrix format
     x <- as.matrix(apply(x, 2, function(col) quantile(col, 1 - VaR * 0.01)))
     
-    # Put name for column
-    colnames(x) <- c(sprintf("VaR %s%%", VaR))
+    colnames(x) <- c(sprintf("VaR %s%%", VaR)) # Put name for column
     
-    # Display matrix
-    return(x) }
+    return(x) } # Display matrix
 }
 # Test
 histVaR(stock_data, 95)
