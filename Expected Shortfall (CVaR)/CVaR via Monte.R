@@ -1,66 +1,32 @@
-# Libraries
-lapply(c("quantmod",
-         "ggplot2",
-         "data.table",
-         "timeSeries"),
-       require,
-       character.only = TRUE)
+lapply(c("quantmod", "ggplot2", "data.table", "timeSeries"), # Libraries
+       require, character.only = TRUE)
 
-# Monte Function
-monte_carlo_for_cvar <- function(c, ndays, n, ES_for_monte = 95){
-  
-  # Set list to store values
-  list_cvar_mc <- NULL
-  
-  # Set title for plot
-  title_for_cvar <- colnames(c)
+# Monte Function for Expected Shortfall
+monte.carlo.es <- function(c, ndays, n, ES = 95){ l <- NULL
   
   # For each column in data set
-  for (b in 1:ncol(c)){
+  for (b in 1:ncol(c)){ v <- as.numeric(c[,b] / lag(c[,b])) # Calculate return
     
-    # Define name for column variable
-    security <- c[,b]
+    v[1] <- 1 # Define first value in column as 1
     
-    # Calculate return
-    lrtn <- as.numeric(security / lag(security))
+    set.seed(0) # Calculate various scenarios of Stock Performance
     
-    # Define first value in column as 1
-    lrtn[1] <- 1
-    
-    # Calculate various scenarios of Stock Performance
-    set.seed(0)
-    
-    # Mimic Historical Performance using log returns
-    paths <- replicate(n, expr = round(sample(lrtn,ndays,replace = TRUE),2))
-    
-    # Put values into list and calculate cumulative sums
-    paths <- apply(paths, 2, cumprod)
+    # Mimic Historical Performance & calculate cumulative sums
+    p <- apply(replicate(n,expr=round(sample(v,ndays,replace=T),2)),2,cumprod)
     
     # Transform it into Time Series
-    paths <- data.table(paths)
-    paths$days <- 1:nrow(paths)
-    paths <- melt(paths,
-                  id.vars = "days")
+    p <- data.table(p)
+    p$days <- 1:nrow(p)
+    p <- melt(p, id.vars = "days")
     
     # Calculate CVaR and add to list
-    list_cvar_mc <- rbind(list_cvar_mc,
-                          mean(quantile(((paths$value[paths$days ==
-                                                        ndays] - 1) *
-                                                         100),
-                                        probs = seq(0,
-                                                    1 - ES_for_monte * 0.01,
-                                                    1/n) / ndays)))
-  }
-  # Give row name
-  rownames(list_cvar_mc) <- title_for_cvar
+    l <- rbind(l, mean(quantile(((p$value[p$days == ndays] - 1) * 100),
+                                probs = seq(0, 1 - CVaR * .01, 1/n)/ndays))) }
   
-  # Give column name
-  colnames(list_cvar_mc) <- "ES MC"
+  rownames(l) <- colnames(c) # Give row name
+  colnames(l) <- "ES MC" # Give column name
   
-  # Display values
-  return(list_cvar_mc)
+  return(l) # Display values
 }
 # Test
-monte_carlo_for_cvar(portfolioReturns, 
-                    ndays = 252, 
-                    n = 100)
+monte.carlo.es(portfolioReturns, ndays = 252, n = 100)
