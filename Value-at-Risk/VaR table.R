@@ -1,78 +1,58 @@
-# Select Libraries
-lapply(c("quantmod",
-         "ggplot2",
-         "data.table",
-         "timeSeries"),
-       require,
-       character.only = TRUE)
+library("data.table") # Libraries
 
 # Table with VaRs
-VaR_table <- function(var_x, VaR = 95, ndays = 252, n_obvs = 100, lg = T){
+VaR.t <- function(data, VaR = 95, ndays = 252, q = 100, lg = T){
   
   ### Historical VaR Part ###
   
   # Check whether there are less than 100 observations
-  if (nrow(var_x)<100) { print("Insufficient number of observations.") } else {
+  if (nrow(data)<100) { print("Insufficient number of observations.") } else {
     
     # Calculate log returns and remove NA if necessary
-    if (isTRUE(lg)) { var_x1 <- diff(log(var_x))[-1,] }
+    if (isTRUE(lg)) { var_x1 <- diff(log(data))[-1,] } # Log returns & NA off
     
-    # Calculate VaR's quantile
-    y = 1 - VaR * 0.01
+    y = 1 - VaR * 0.01 # Calculate VaR's quantile
     
-    # Calculate historical VaR value 
-    hist_x <- apply(var_x1, 2, function(col) quantile(col, y))
-
+    hist_x <- apply(var_x1, 2, function(col) quantile(col,y)) # Historical VaR
+    
     ### VaR Variance Covariance Part ###
+  
+    v.VaR <- apply(var_x1, 2, function(x) c(mean(x), sd(x))) # Means and SD
     
-    # Calculate means and SDs
-    vs_VaR <- apply(var_x1, 2, function(x) c(mean(x), sd(x)))
-    
-    # Set up list to contain future values
-    var_vc <- NULL
+    vc <- NULL # Set up list to contain future values
     
     # For each asset calculate VaR using standard norm probs and join to list
-    for (n in 1:(ncol(var_x))){ var_vc <- rbind(var_vc,vs_VaR[1,n] + qnorm(y) *
-                                                  vs_VaR[2,n])}
+    for (n in 1:ncol(data)){ vc <- rbind(vc, v.VaR[1,n] + qnorm(y)*v.VaR[2,n])}
+    
     ### VaR by Monte Carlo ###
     
-    # Set list to store values
-    list_var_mc <- NULL
+    mc <- NULL # Set list to store values
     
-    for (b in 1:ncol(var_x)){ security <- var_x[,b]
+    # Calculate returns
+    for (b in 1:ncol(data)){ v <- as.numeric(data[,b] / lag(data[,b]))
+    
+      v[1] <- 1 # Assign 1 as a first value
       
-      # Calculate returns
-      lrtn_for_monte <- as.numeric(security / lag(security))
-      
-      # Assign 1 as a first value
-      lrtn_for_monte[1] <- 1
-      
-      # Calculate various scenarios of Stock Performance
-      set.seed(0)
+      set.seed(0) # Calculate various scenarios of Stock Performance
       
       # Mimic Historical Performance using log returns
-      paths <- replicate(n_obvs, expr = round(sample(lrtn_for_monte, ndays,
-                                             replace = TRUE),2))
+      p <- replicate(q, expr = round(sample(v, ndays, replace = T), 2))
       
       # Put values into list and calculate cumulative sums
-      paths <- data.table(apply(paths,2,cumprod))
-      paths$days <- 1:nrow(paths)
-      paths <- melt(paths, id.vars = "days")
+      p <- data.table(apply(p, 2, cumprod))
+      p$days <- 1:nrow(p)
+      p <- melt(p, id.vars = "days")
       
       # Calculate VaR and add to list
-      list_var_mc <- rbind(list_var_mc, quantile(((paths$value[paths$days ==
-                                                                 ndays] -
-                                                     1) * 100), y) / ndays) }
+      mc <- rbind(mc, quantile(((p$value[p$days == ndays] - 1)*100),y)/ndays) }
+    
     ### End of main calculations ###
     
-    # Combine all three matrices into one
-    new_var_list <- data.frame(hist_x, var_vc, list_var_mc)
+    new_var_list <- data.frame(hist_x, vc, mc) # Join three matrices 
     
-    # Give column names
-    colnames(new_var_list) <- c("VaR HM", "VaR VC", "VaR MC")
+    colnames(new_var_list) <- c("VaR HM", "VaR VC", "VaR MC") # Column names
     
-    # Display matrix
-    return(new_var_list) }
+    return(new_var_list) } # Display matrix
 }
 # Test
-VaR_table(var_x = stock_data, VaR = 95)
+VaR.t(data = stock_data, VaR = 95)
