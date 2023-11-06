@@ -2,21 +2,17 @@
 lapply(c("quantmod", "ggplot2", "data.table", "timeSeries"),
        require, character.only = T)
 
-# Securities to analyse
-tickers <- c("AMR")
+tickers <- c("AMR") # Securities to analyse
 
-portfolioPrices <- NULL
+p.Prices <- NULL
 for (Ticker in tickers) 
-  portfolioPrices <- cbind(p.Prices, getSymbols(Ticker, src = "yahoo",
-                                                auto.assign=F)[,4])
+  p.Prices<-cbind(p.Prices,getSymbols(Ticker,src="yahoo",auto.assign=F)[,4])
 p.Prices <- p.Prices[apply(p.Prices, 1, function(x) all(!is.na(x))),]
 colnames(portfolioPrices) <- tickers
 
-# Make it Time Series
-portfolioReturns <-as.timeSeries(p.Prices)
+portfolioReturns <-as.timeSeries(p.Prices) # Make it Time Series
 
-# Monte Function
-monte_carlo <- function(c, ndays, n){
+monte_carlo <- function(c, ndays, n){ # Monte Function
   
   lrtn <- as.numeric(c / lag(c)) # Calculate returns
   lrtn[1] <- 1 # Assign first observation as 1
@@ -24,12 +20,8 @@ monte_carlo <- function(c, ndays, n){
   
   # Mimic Historical Performance using log returns
   paths <- replicate(n, expr = round(sample(lrtn, ndays, replace = TRUE), 2))
-  
-  # Put values into list and calculate cumulative sums
-  paths <- apply(paths, 2, cumprod)
-  
-  # Transform it into Time Series
-  paths <- data.table(paths)
+  paths <- apply(paths, 2, cumprod) # calculate cumulative products
+  paths <- data.table(paths) # Transform it into Time Series
   paths$days <- 1:nrow(paths)
   paths <- melt(paths, id.vars = "days")
   
@@ -48,5 +40,4 @@ monte_carlo <- function(c, ndays, n){
   
   list(monte_graph, monte_summary, monte_mean) # plot & stats
 }
-# Test
-monte_carlo(portfolioReturns, 1000, 100)
+monte_carlo(portfolioReturns, 1000, 100) # Test
