@@ -30,30 +30,10 @@ altmanz.score <- function(x, tech = T){ # Altman Z Score
   
   r <- c("EBIT", "Total Revenue", "Net Income Common Stockholders")
   
-  for (m in 1:length(r)){ q <- NULL
-  
-    for (n in seq(1)){ q <- cbind(q, u[grep(r[m], u) + n])
-    
-      o <- NULL
-      
-      if (length(q) > 1){  o<-c(o,q[1]) } else if (length(q) == 1) { o <- q } } 
-      
-    c <- rbind(c, o) }
+  for (m in 1:length(r)){ c <- rbind(c, u[grep(r[m], u) + 1][1]) }
+  for (m in 1:length(p)){ h <- rbind(h, y[grep(p[m], y) + 1][1]) }
   
   c <- gsub(",", "", gsub("([a-zA-Z]),", "\\1 ", c)) # Reduce commas
-  
-  for (m in 1:length(p)){ v <- NULL
-  
-    for (n in seq(1)){ v <- cbind(v, y[grep(p[m], y) + n])
-    
-      w <- NULL
-      
-      if (length(v) > 1){ for (n in seq(0, 3, 1)) w <- c(w, v[1 + 2 * n]) 
-      
-    } else if (length(v) == 1) { w <- v } } 
-    
-    h <- rbind(h, w) }
-  
   h <- gsub(",", "", gsub("([a-zA-Z]),", "\\1 ", h)) # Reduce commas
   
   A <- as.numeric(h[4]) / as.numeric(h[1]) # Working Capital / Total Assets
@@ -82,4 +62,4 @@ altmanz.score <- function(x, tech = T){ # Altman Z Score
       
       sprintf("%s Altman Z Score is %s, what is in distress zone", x, a.r) } }
 }
-altmanz.score("ZIM", tech = F) # Test
+altmanz.score("AAPL", tech = T) # Test
