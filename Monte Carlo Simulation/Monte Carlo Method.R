@@ -1,15 +1,17 @@
 lapply(c("quantmod", "ggplot2", "data.table", "timeSeries"),
        require, character.only = T) # Libraries
 
-monte.carlo <- function(tickers, ndays, n){ # Monte Function
+monte.carlo <- function(x, ndays, n, yahoo = T){ # Monte Carlo Simulation
   
-  p.Prices <- NULL
-  for (Ticker in tickers) 
-    p.Prices<-cbind(p.Prices,getSymbols(Ticker,src="yahoo",auto.assign=F)[,4])
-  p.Prices <- p.Prices[apply(p.Prices, 1, function(x) all(!is.na(x))),]
-  colnames(p.Prices) <- tickers
+  if (isTRUE(yahoo)){ P <- NULL # When Data from Yahoo! Finance needed
   
-  c <-as.timeSeries(p.Prices)  
+    for (A in x){ P <- cbind(P, getSymbols(A,src="yahoo",auto.assign=F)[,4]) }
+  
+    P <- P[apply(P, 1, function(x) all(!is.na(x))),] # Reduce NA
+    
+    colnames(P) <- x } else { P <- x } # Assign columns
+  
+  c <- as.timeSeries(P) # Make data Time Series
   
   r <- as.numeric(c / lag(c)) # Calculate returns
   r[1] <- 1 # Assign first observation as 1
