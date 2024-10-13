@@ -1,8 +1,7 @@
-# Calculate VaR via Historical Method
-histVaR <- function(x, VaR, lg = T){
+histVaR <- function(x, VaR, lg = T){ # Calculate VaR via Historical Method
   
   # Check whether there are less than 100 observations
-  if (nrow(x) < 100) { print("Insufficient number of observations.") } else {
+  if (nrow(x) < 100) { message("Insufficient number of observations.") } else {
     
     if (isTRUE(lg)) { x <- diff(log(x))[-1,] } # log returns and remove NA
     
@@ -13,5 +12,4 @@ histVaR <- function(x, VaR, lg = T){
     
     return(x) } # Display matrix
 }
-# Test
-histVaR(stock_data, 95)
+histVaR(stock_data, 95) # Test
