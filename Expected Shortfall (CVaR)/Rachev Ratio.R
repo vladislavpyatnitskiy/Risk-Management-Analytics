@@ -1,6 +1,6 @@
 Rachev.ratio <- function(x, VaR, lg = T){ # Rachev Ratio via historical method
   
-  if (nrow(x) < 100) { print("Error. Insufficient number of observations.") } 
+  if (nrow(x) < 100) { message("Error: Insufficient number of observations.") } 
   
     else { if (isTRUE(lg)) { x <- diff(log(x))[-1,] } # Make log if needed
     
