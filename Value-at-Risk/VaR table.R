@@ -6,53 +6,51 @@ VaR.t <- function(data, VaR = 95, ndays = 252, q = 100, lg = T){
   ### Historical VaR Part ###
   
   # Check whether there are less than 100 observations
-  if (nrow(data)<100) { print("Insufficient number of observations.") } else {
+  if (nrow(data) < 100) return(message("Insufficient number of observations."))
     
-    # Calculate log returns and remove NA if necessary
-    if (isTRUE(lg)) { var_x1 <- diff(log(data))[-1,] } # Log returns & NA off
+  if (lg) { var_x1 <- diff(log(data))[-1,] } # Log returns & NA off
     
-    y = 1 - VaR * 0.01 # Calculate VaR's quantile
+  y = 1 - VaR * 0.01 # Calculate VaR's quantile
     
-    hist_x <- apply(var_x1, 2, function(col) quantile(col,y)) # Historical VaR
+  hist_x <- apply(var_x1, 2, function(col) quantile(col,y)) # Historical VaR
     
-    ### VaR Variance Covariance Part ###
-  
-    v.VaR <- apply(var_x1, 2, function(x) c(mean(x), sd(x))) # Means and SD
+  ### VaR Variance Covariance Part ###
     
-    vc <- NULL # Set up list to contain future values
+  v.VaR <- apply(var_x1, 2, function(x) c(mean(x), sd(x))) # Means and SD
     
-    # For each asset calculate VaR using standard norm probs and join to list
-    for (n in 1:ncol(data)){ vc <- rbind(vc, v.VaR[1,n] + qnorm(y)*v.VaR[2,n])}
+  vc <- NULL # Set up list to contain future values
     
-    ### VaR by Monte Carlo ###
+  # For each asset calculate VaR using standard norm probs and join to list
+  for (n in 1:ncol(data)){ vc <- rbind(vc, v.VaR[1,n] + qnorm(y)*v.VaR[2,n]) }
     
-    mc <- NULL # Set list to store values
+  ### VaR by Monte Carlo ###
     
-    # Calculate returns
-    for (b in 1:ncol(data)){ v <- as.numeric(data[,b] / lag(data[,b]))
+  mc <- NULL # Set list to store values
     
-      v[1] <- 1 # Assign 1 as a first value
+  # Calculate returns
+  for (b in 1:ncol(data)){ v <- as.numeric(data[,b] / lag(data[,b]))
       
-      set.seed(0) # Calculate various scenarios of Stock Performance
+    v[1] <- 1 # Assign 1 as a first value
       
-      # Mimic Historical Performance using log returns
-      p <- replicate(q, expr = round(sample(v, ndays, replace = T), 2))
+    set.seed(0) # Calculate various scenarios of Stock Performance
       
-      # Put values into list and calculate cumulative sums
-      p <- data.table(apply(p, 2, cumprod))
-      p$days <- 1:nrow(p)
-      p <- melt(p, id.vars = "days")
+    # Mimic Historical Performance using log returns
+    p <- replicate(q, expr = round(sample(v, ndays, replace = T), 2))
       
-      # Calculate VaR and add to list
-      mc <- rbind(mc, quantile(((p$value[p$days == ndays] - 1)*100),y)/ndays) }
+    # Put values into list and calculate cumulative sums
+    p <- data.table(apply(p, 2, cumprod))
+    p$days <- 1:nrow(p)
+    p <- melt(p, id.vars = "days")
+      
+    # Calculate VaR and add to list
+    mc <- rbind(mc, quantile(((p$value[p$days == ndays] - 1)*100),y)/ndays) }
+      
+  ### End of main calculations ###
     
-    ### End of main calculations ###
+  new_var_list <- data.frame(hist_x, vc, mc) # Join three matrices 
     
-    new_var_list <- data.frame(hist_x, vc, mc) # Join three matrices 
+  colnames(new_var_list) <- c("VaR HM", "VaR VC", "VaR MC") # Column names
     
-    colnames(new_var_list) <- c("VaR HM", "VaR VC", "VaR MC") # Column names
-    
-    return(new_var_list) } # Display matrix
+  return(new_var_list) # Display matrix
 }
-# Test
-VaR.t(data = stock_data, VaR = 95)
+VaR.t(data = stock_data, VaR = 95) # Test
