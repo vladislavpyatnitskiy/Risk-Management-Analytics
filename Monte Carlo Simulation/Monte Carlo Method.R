@@ -49,9 +49,9 @@ monte.carlo <- function(x, ndays, n, yahoo = T){ # Monte Carlo Simulation
     
     if (is.null(Plots)){ Plots <- plt } else { Plots <- list(Plots, plt) } }
     
-  names(Av) <- x # Assign names
+  names(Av) <- colnames(P) # Assign names
   
-  rownames(L) <- x # Assign row names
+  rownames(L) <- colnames(P) # Assign row names
   
   list(Plots, L, Av) # Output
 }    
