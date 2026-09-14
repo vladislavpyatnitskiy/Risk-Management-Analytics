@@ -2,29 +2,59 @@
 lapply(c("quantmod", "ggplot2", "data.table", "timeSeries"),
        require, character.only = T)
 
-# Monte Function
-monte.carlo.var <- function(c, ndays, n, VaR = 95){
+monte.carlo.var <- function(x, ndays, n, VaR = 95, yahoo=T){ # Monte Function
   
-  l.var <- NULL # Set list to store values
+  if (yahoo){ P <- NULL # When Data from Yahoo! Finance needed
+    
+    for (A in 1:length(x)){ s = getSymbols(x[A],src="yahoo",auto.assign=F)[,4] 
+    
+      message(
+        sprintf(
+          "%s is downloaded; %s from %s", 
+          x[A], which(x == x[A]), length(x)
+        )
+      )
+      
+      s <- s[apply(s, 1, function(x) all(!is.na(x))),] # Reduce NA
+      
+      colnames(s) <- x[A] 
+      
+      if (!is.timeSeries(s)){ s <- as.timeSeries(s) }
+      
+      if (is.null(P)) P <- list(s) else P[[A]] <- s } }
+      
+  L <- NULL
   
-  # For each column in data set
-  for (b in 1:ncol(c)){ lrtn <- as.numeric(c[,b] / lag(c[,b]))
+  for (m in 1:length(P)){ c <- P[[m]]
     
-    lrtn[1] <- 1 # Define first value in column as 1
-    
+    r <- as.numeric(c / lag(c)) # Calculate returns
+    r[1] <- 1 # Assign first observation as 1
     set.seed(0) # Calculate various scenarios of Stock Performance
-    paths <- replicate(n, expr = round(sample(lrtn, ndays, replace = T), 2))
-    paths <- data.table(apply(paths, 2, cumprod)) # Calculate cumulative sums
-    paths$days <- 1:nrow(paths)
-    paths <- melt(paths, id.vars = "days")
     
-    l.var <- rbind(l.var, quantile(((paths$value[paths$days==ndays]-1)*100),
-                                   1 - VaR * 0.01))} # Add VaR to list
-  # Give row and column names
-  rownames(l.var) <- colnames(c)
-  colnames(l.var) <- "VaR MC"
+    # Mimic Historical Performance using log returns
+    p <- data.table(
+      apply(
+        replicate(n, expr = round(sample(r, ndays, replace=T), 2)),
+        2,
+        cumprod
+      )
+    )
+    
+    p$days <- 1:nrow(p)
+    p <- melt(p, id.vars = "days")
+    
+    L <- rbind(
+      L, 
+      quantile(
+        (p$value[p$days == ndays] - 1) * 100,
+        1 - VaR * 0.01
+        )
+      ) # Add VaR to list
+  }
   
-  return(l.var) # Display values
+  rownames(L) <- x
+  colnames(L) <- "VaR MC (%)"
+  
+  L # Display values
 }
-# Test
-monte.carlo.var(portfolioReturns, 252, 100)
+monte.carlo.var(c("GOOGL", "AMZN"), 250, 100) # Test
